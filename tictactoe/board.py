@@ -9,9 +9,20 @@ class Board:
         # self.state = tuple('-' for _ in range(9))
         if len(given_state) != 9:
             raise ValueError("State/Board must be of length 9.")
-        else:
-            self.state = given_state
-            print("constructor: self.state: ", self.state)
+        if any(char not in ['-', 'O', 'X'] for char in given_state):
+            raise ValueError("Board must only contain '-', 'O', or 'X'")
+
+        # if no errors, set the state and list of possible actions for the Board:
+        self.state = given_state
+        # testprint print("constructor: self.state: ", self.state)
+
+        # create list of possible actions in the Board:
+        self.possible_actions = []
+        for index in range(len(self.state)):
+            if self.state[index] == '-':
+                self.possible_actions.append(index)
+
+
 
     def __repr__(self):
         rows = ["".join(str(elem) for elem in self.state[0:3]),
@@ -20,8 +31,7 @@ class Board:
         return "\n".join(rows)
 
     def __eq__(self, other):
-        if isinstance(other, Board):
-            return self.state == other.state
+        return isinstance(self, Board) and self.state == other.state
 
     def __deepcopy__(self, memo=None):
         if memo is None:
@@ -38,7 +48,7 @@ class Board:
         }
 
 
-    def add_move(self, index: int, player: chr):
+    def add_move(self, index: int, player: str):
         """
 
         :param index:   which index a move is taking place
@@ -50,7 +60,9 @@ class Board:
         # new_board_as_list = list(self.state)
         # new_board_as_list[index] = player
         new_board = self.state[:index] + (player,) + self.state[index+1:]
+        # print("Board.add_move(): new_board: ", new_board, "\n")
         return Board(new_board)
+
 
     def has_winner(self):
         """
@@ -58,37 +70,39 @@ class Board:
         """
         # check rows
         for row in range(0, 9, 3): # for 0, 3, 6
-            if self.state[row] == self.state[row + 1] == self.state[row + 2]:
-                print('row winner, row: ', row, '\n')
+            if self.state[row] != '-' and self.state[row] == self.state[row + 1] == self.state[row + 2]:
+                # print('row winner, row: ', row, '\n')
                 return True
+
         # check columns
-        for col in range(0): # for 0=3=6, 1=4=7, 2=5=8
-            if self.state[col] == self.state[col + 3] == self.state[col + 6]:
-                print('col winner, col: ', col, '\n')
+        for j in range(0, 3, 1):
+            if self.state[j] != '-' and self.state[j] == self.state[j + 3] == self.state[j + 6]:
+                # print('j winner, j: ', j, '\n')
                 return True
+
         # check diagonals
-        if self.state[0] == self.state[4] == self.state[8]:
-            print('diag 0 winner \n')
+        if self.state[0] == self.state[4] == self.state[8] != '-':
+            # print('diag 0 winner \n')
             return True
-        if self.state[2] == self.state[4] == self.state[6]:
-            print('diag 2 winner \n')
+        if self.state[2] == self.state[4] == self.state[6] != '-':
+            # print('diag 2 winner \n')
             return True
 
         return False
 
-    def is_winner(self, player: chr):
-        '''
+    def is_winner(self, player: str):
+        """
 
         :param player: a character representing the player
         :return: boolean, true if player chr is the winner, false otherwise
-        '''
-        if self.has_winner():
+        """
+        if self.has_winner:
             # check the rows
-            for row in range(0, 9, 3):
+            for row in range(0, 9, 3): #for 0, 3 and 6, the leading index of each row
                 if player == self.state[row] == self.state[row + 1] == self.state[row + 2]:
                     return True
             # check columns
-            for col in range(3):
+            for col in range(0,3): # 0, 1, and 2 are leading column indices
                 if player == self.state[col] == self.state[col + 3] == self.state[col + 6]:
                     return True
             # check diagonals
@@ -96,17 +110,20 @@ class Board:
                 return True
             if player == self.state[2] == self.state[4] == self.state[6]:
                 return True
-            return False
         else:
             return False
 
-    def possible_actions(self):
-        """
 
-        :return: list of possible actions for self
-        """
-        possible_actions = []
-        for index in range(len(self.state)):
-            if self.state[index] == '-':
-                possible_actions.append(index)
-        return possible_actions
+    def has_tie(self):
+        if self.has_winner():
+            # print("board has a winner, so there not a tie.\n")
+            return False
+
+        elif len(self.possible_actions) == 0:
+            # print("possible action list has len() 0, board has a tie.\n")
+            return True
+        else:
+            # print("board does not have a winner and does not have a tie.\n")
+            return False
+
+
