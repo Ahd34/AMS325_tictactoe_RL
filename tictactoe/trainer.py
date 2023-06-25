@@ -1,18 +1,20 @@
 import copy
 import random
 from collections import OrderedDict
+import pickle
+import pandas as pd
+import csv
+
 from typing import Type
 
 from tictactoe import Board, Agent
-
-
-
 
 
 class Trainer:
     # class variables:
 
     def __init__(self):
+
         self.state_table: OrderedDict[Board, OrderedDict] = OrderedDict()
         self.epsilon = 0.9
         self.alpha = 0.1
@@ -54,6 +56,7 @@ class Trainer:
             else:
                 # print("There is a tie.\n")
                 self.tie_count += 1
+            self.currentEpisodeNum += 1
 
         # after all episodes, print the win counts
         print("X win count is: ", self.x_win_count)
@@ -164,7 +167,6 @@ class Trainer:
             # print("Adding state to table.\n")
             self.state_table[state] = action_values
 
-
     def backup_q_value(self, state_s: Board, action_a: int, state_s_plus_1: Board, reward=0):
         """
         Q(s,a) = Q(s,a) + alpha * ( Reward + Y*argmax(s_t_plus_1) - Q(s,a))
@@ -176,7 +178,7 @@ class Trainer:
         """
         q_s_a = self.state_table.get(state_s)
         q_s_a[action_a] = q_s_a[action_a] + \
-            self.alpha * (reward + self.gamma * self.arg_max(state_s_plus_1) - q_s_a[action_a])
+                          self.alpha * (reward + self.gamma * self.arg_max(state_s_plus_1) - q_s_a[action_a])
 
     def arg_max(self, state_s: Board):
         """
@@ -198,4 +200,29 @@ class Trainer:
             max_qty = [q for q in q_values if q == max_q]
 
             return random.choice(max_qty)
+
+    def save_table_to_file(self):
+        with open('state_table_serialized.pkl', 'wb') as file:
+            pickle.dump(self.state_table, file)
+            print("saving state_table to serialized file.")
+
+    def load_serialize_file(self):
+        try:
+            with open('state_table_serialized.pkl', 'rb') as file:
+                self.state_table = pickle.load(file)
+                print("Loading serialized state_table file.")
+
+
+        except FileNotFoundError:
+            print("File not found. Generating blank state_table")
+
+    def save_table_as_csv(self):
+        # table_as_dataframe = pd.DataFrame.from_dict(self.state_table, orient='index')
+        # table_as_dataframe.to_excel('state_table_excel.xlsx')
+        with open('data.csv', 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['State', 'Action-Value Pairs'])
+            for key, value in self.state_table.items():
+                writer.writerow([key, [value.keys(), value.values()]])
+
 

@@ -7,6 +7,8 @@ from tictactoe import Board, Trainer, Agent
 
 def main():
     train = Trainer()
+   #train.load_serialize_file()
+
     # mytuple = tuple('-' for _ in range(9))
     # blankb = Board(mytuple)
     # board0 = blankb.add_move(0, 'X')
@@ -19,6 +21,9 @@ def main():
     # print('board2 winner? ', board3.has_winner())
     # print('board 4 winner is: ', board4.is_winner('0'))
     train.training(10000)
+    train.save_table_to_file()
+    train.save_table_as_csv()
+    print("program complete.")
 
 
 if __name__ == '__main__':
