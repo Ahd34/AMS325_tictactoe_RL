@@ -2,7 +2,6 @@ import copy
 import random
 from collections import OrderedDict
 import pickle
-import pandas as pd
 import csv
 
 from typing import Type
