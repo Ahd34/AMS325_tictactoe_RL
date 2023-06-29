@@ -1,2 +1,7 @@
 /data.csv
+/episode_num_set.csv
+/epsilon_set.csv
+/o_rate.csv
 /state_table_serialized.pkl
+/tie_rate.csv
+/x_rate.csv

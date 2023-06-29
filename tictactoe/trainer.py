@@ -1,14 +1,8 @@
-import copy
 import random
 from collections import OrderedDict
 import pickle
 import csv
 from tqdm import tqdm
-import numpy as np
-# import matplotlib.pyplot as plot
-
-from typing import Type
-
 from tictactoe import Board, Agent
 
 
@@ -36,6 +30,8 @@ class Trainer:
         self.win_rate_dataset_tie = []
         self.epsilon_dataset = []
         self.current_episode_num_set = []
+        self.add_state_to_state_table(self.current_state)
+
 
     def training(self, num_episodes=10):
         # blank_board = tuple('-' for _ in range(9))
@@ -89,10 +85,6 @@ class Trainer:
         reward_x = 0.0
         reward_o = 0.0
         state_x_t = self.blank_board
-        # print(state_x_t)
-
-        # make sure the board is in the state_table
-        # self.add_state_to_state_table(state_x_t)
 
         # get an action from the player
         action_x_t = player_x.get_behavior_action(state_x_t, self.state_table, epsilon)
@@ -101,19 +93,14 @@ class Trainer:
         self.current_state = state_x_t.add_move(action_x_t, player_x.symbol)
         state_o_t = self.current_state
         # print(current_state)
-
-        # add the new board to the state table
-        # self.add_state_to_state_table(state_o_t)
-
-        # set state o_t to the latest board that X made a move on
+        self.add_state_to_state_table(self.current_state)
 
         action_o_t = player_o.get_behavior_action(state_o_t, self.state_table, epsilon)
 
-        # while loop to play through the episode, break when there is a winner or tie
         while True:
             self.current_state = self.current_state.add_move(action_o_t, player_o.symbol)
             # print(current_state)
-            # self.add_state_to_state_table(state_x_t_1)
+            self.add_state_to_state_table(self.current_state)
             # check if O ended the game
             if self.current_state.is_winner(player_o.symbol):
                 reward_x = -1.0
@@ -134,7 +121,7 @@ class Trainer:
             action_x_t = action_x_t_1
 
             self.current_state = state_x_t.add_move(action_x_t, player_x.symbol)
-            # self.add_state_to_state_table(state_o_t_1)
+            self.add_state_to_state_table(self.current_state)
             # print(current_state)
 
             # check if X ended the game
@@ -204,7 +191,7 @@ class Trainer:
         """
         action_table = self.state_table.get(state_s)
         action_table[action_a] = action_table[action_a] + self.alpha * (
-                reward + self.gamma * self.arg_max(state_s_plus_1) - action_table[action_a])
+                    reward + self.gamma * self.arg_max(state_s_plus_1) - action_table[action_a])
 
     def arg_max(self, state_s: Board):
         """
