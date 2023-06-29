@@ -1,5 +1,6 @@
 import pickle
 import random
+import time
 
 import tkinter as tk
 from tkinter import ttk, messagebox
@@ -50,9 +51,7 @@ class TicTacToeGUI(tk.Tk):
         if self.current_player == 'O':
             agent_move = self.get_agent_move()
 
-            self.move(agent_move[0], agent_move[1])
-
-        print(self.get_agent_move())
+            self.after(300, lambda row=agent_move[0], col=agent_move[1]: self.move(row, col))
 
     def check_winner(self):
         win_conditions = [self.state[0],
