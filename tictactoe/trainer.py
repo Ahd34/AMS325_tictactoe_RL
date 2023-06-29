@@ -204,7 +204,7 @@ class Trainer:
         """
         action_table = self.state_table.get(state_s)
         action_table[action_a] = action_table[action_a] + self.alpha * (
-                    reward + self.gamma * self.arg_max(state_s_plus_1) - action_table[action_a])
+                reward + self.gamma * self.arg_max(state_s_plus_1) - action_table[action_a])
 
     def arg_max(self, state_s: Board):
         """

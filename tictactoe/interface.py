@@ -125,7 +125,6 @@ class TicTacToeGUI(tk.Tk):
             return agent_move
 
 
-
 game = TicTacToeGUI()
 
 game.mainloop()

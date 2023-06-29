@@ -3,7 +3,6 @@ import numpy as np
 import time
 
 
-
 def main():
     start_time = time.time()
 
@@ -24,7 +23,6 @@ def main():
     epsilon_set = train.epsilon_dataset
     episode_num_set = train.current_episode_num_set
 
-
     np.savetxt('x_rate.csv', x_rate, delimiter=',')
     np.savetxt('o_rate.csv', o_rate)
     np.savetxt('tie_rate.csv', tie_rate)
@@ -33,15 +31,8 @@ def main():
 
     # make a list fo
 
-
-
     print("program complete. Total runtime: %s seconds" % (time.time() - start_time))
 
 
 if __name__ == '__main__':
     main()
-
-
-
-
-

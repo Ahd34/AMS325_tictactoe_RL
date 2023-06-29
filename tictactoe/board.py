@@ -22,8 +22,6 @@ class Board:
             if self.state[index] == '-':
                 self.possible_actions.append(index)
 
-
-
     def __repr__(self):
         rows = ["".join(str(elem) for elem in self.state[0:3]),
                 "".join(str(elem) for elem in self.state[3:6]),
@@ -47,7 +45,6 @@ class Board:
             'state': self.state
         }
 
-
     def add_move(self, index: int, player: str):
         """
 
@@ -59,17 +56,16 @@ class Board:
         # self.state = tuple('-' for _ in range(9))
         # new_board_as_list = list(self.state)
         # new_board_as_list[index] = player
-        new_board = self.state[:index] + (player,) + self.state[index+1:]
+        new_board = self.state[:index] + (player,) + self.state[index + 1:]
         # print("Board.add_move(): new_board: ", new_board, "\n")
         return Board(new_board)
-
 
     def has_winner(self):
         """
         Returns a boolean if the board contains a winner (True) or not (False)
         """
         # check rows
-        for row in range(0, 9, 3): # for 0, 3, 6
+        for row in range(0, 9, 3):  # for 0, 3, 6
             if self.state[row] != '-' and self.state[row] == self.state[row + 1] == self.state[row + 2]:
                 # print('row winner, row: ', row, '\n')
                 return True
@@ -98,11 +94,11 @@ class Board:
         """
         if self.has_winner:
             # check the rows
-            for row in range(0, 9, 3): #for 0, 3 and 6, the leading index of each row
+            for row in range(0, 9, 3):  # for 0, 3 and 6, the leading index of each row
                 if player == self.state[row] == self.state[row + 1] == self.state[row + 2]:
                     return True
             # check columns
-            for col in range(0,3): # 0, 1, and 2 are leading column indices
+            for col in range(0, 3):  # 0, 1, and 2 are leading column indices
                 if player == self.state[col] == self.state[col + 3] == self.state[col + 6]:
                     return True
             # check diagonals
@@ -112,7 +108,6 @@ class Board:
                 return True
         else:
             return False
-
 
     def has_tie(self):
         if self.has_winner():
@@ -125,5 +120,3 @@ class Board:
         else:
             # print("board does not have a winner and does not have a tie.\n")
             return False
-
-

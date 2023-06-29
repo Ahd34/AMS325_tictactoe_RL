@@ -3,7 +3,6 @@ from collections import OrderedDict
 import random
 
 
-
 class Agent:
     def __init__(self, symbol_value: int):
         """
@@ -66,4 +65,3 @@ class Agent:
                 best_actions.append(key)
 
         return random.choice(best_actions)
-
