@@ -26,17 +26,17 @@ class Agent:
     @staticmethod
     def get_behavior_action(state: Board, state_table: OrderedDict, epsilon) -> int:
         """
-        called from trainer.py - used to get a greedy action with probability epsilon
+        called from trainer.py - returns a random action with probability epsilon
         :param state: Board object
         :param state_table: pass the state_table from Trainer
         :param epsilon: pass epsilon, which changes as num_episodes increases in Trainer
         :return: int action
         """
         # get valid action from the state table?
-        random_number = random.uniform(0, 1)
+        # random_number = random.uniform(0, 1)
         # print('random num: ', random_number, ", ", epsilon, "\n")
         # action_table = state_table.get(state)
-        if random_number >= epsilon:
+        if random.uniform(0, 1) < epsilon:
             # take a random action
             # print("take random action\n")
             return random.choice(state.possible_actions)

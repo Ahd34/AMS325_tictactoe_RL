@@ -3,6 +3,9 @@ import random
 from collections import OrderedDict
 import pickle
 import csv
+from tqdm import tqdm
+import numpy as np
+# import matplotlib.pyplot as plot
 
 from typing import Type
 
@@ -19,16 +22,24 @@ class Trainer:
         self.alpha = 0.1
         self.gamma = 0.99
         self.currentEpisodeNum = 1
-        self.x_win_count = 0
-        self.o_win_count = 0
-        self.tie_count = 0
-        self.blank_board = tuple('-' for _ in range(9))
+        self.x_win_count = 0.0
+        self.o_win_count = 0.0
+        self.tie_count = 0.0
+        self.blank_board = Board(tuple('-' for _ in range(9)))
         self.player1 = Agent(1)
         self.player2 = Agent(-1)
+        self.current_state = Board(tuple('-' for _ in range(9)))
+        # establish data sets for plotting win rates over time in matlab as 3D
+        # data sets will be x,y,z as : current_episode_number, current_epsilon, win_count/current_episode_num
+        self.win_rate_dataset_x = []
+        self.win_rate_dataset_o = []
+        self.win_rate_dataset_tie = []
+        self.epsilon_dataset = []
+        self.current_episode_num_set = []
 
     def training(self, num_episodes=10):
         # blank_board = tuple('-' for _ in range(9))
-        current_state = Board(self.blank_board)
+
         print('inside training() for ', num_episodes, ' episodes.\n')
 
         # set the players
@@ -40,9 +51,10 @@ class Trainer:
             player_o = self.player1
 
         # for each episode we want to play
-        for episode in range(num_episodes):
+
+        for episode in tqdm(range(num_episodes), desc="Playing episodes."):
             # print('inside episode num ', episode, ', of ', num_episodes, '\n')
-            self.epsilon = max(0.1, 0.9 - (episode / 1000000.0))
+            self.epsilon = max(0.01, 0.9 - (episode / 500000.0))
             # play a game
             winner = self.training_one_episode(player_x, player_o, self.epsilon)
 
@@ -55,6 +67,14 @@ class Trainer:
             else:
                 # print("There is a tie.\n")
                 self.tie_count += 1
+
+            # after each episode, add the win rates, tie rates, and epsilon value to datasets for graphing
+            self.win_rate_dataset_x.append(self.x_win_count / self.currentEpisodeNum)
+            self.win_rate_dataset_o.append(self.o_win_count / self.currentEpisodeNum)
+            self.win_rate_dataset_tie.append(self.tie_count / self.currentEpisodeNum)
+            self.epsilon_dataset.append(self.epsilon)
+            self.current_episode_num_set.append(self.currentEpisodeNum)
+
             self.currentEpisodeNum += 1
 
         # after all episodes, print the win counts
@@ -66,46 +86,45 @@ class Trainer:
 
     def training_one_episode(self, player_x: Agent, player_o: Agent, epsilon):
         # initialize an empty Board called "board"
-
-        state_x_t = Board(self.blank_board)
+        reward_x = 0.0
+        reward_o = 0.0
+        state_x_t = self.blank_board
         # print(state_x_t)
 
         # make sure the board is in the state_table
-        self.add_state_to_state_table(state_x_t)
+        # self.add_state_to_state_table(state_x_t)
 
         # get an action from the player
         action_x_t = player_x.get_behavior_action(state_x_t, self.state_table, epsilon)
 
         # update the board with the player's move
-        current_state = state_x_t.add_move(action_x_t, player_x.symbol)
+        self.current_state = state_x_t.add_move(action_x_t, player_x.symbol)
+        state_o_t = self.current_state
         # print(current_state)
 
         # add the new board to the state table
-        self.add_state_to_state_table(current_state)
+        # self.add_state_to_state_table(state_o_t)
 
         # set state o_t to the latest board that X made a move on
-        state_o_t = copy.deepcopy(current_state)
+
         action_o_t = player_o.get_behavior_action(state_o_t, self.state_table, epsilon)
 
         # while loop to play through the episode, break when there is a winner or tie
         while True:
-            current_state = current_state.add_move(action_o_t, player_o.symbol)
+            self.current_state = self.current_state.add_move(action_o_t, player_o.symbol)
             # print(current_state)
-            self.add_state_to_state_table(current_state)
+            # self.add_state_to_state_table(state_x_t_1)
             # check if O ended the game
-            if current_state.is_winner(player_o.symbol):
-                reward_x = -1
-                reward_o = 1
+            if self.current_state.is_winner(player_o.symbol):
+                reward_x = -1.0
+                reward_o = 1.0
                 break
-            elif current_state.has_tie():
-                reward_x, reward_o = 0, 0
+            elif self.current_state.has_tie():
+                reward_x, reward_o = 0.0, 0.0
                 break
-            else:
-                reward_x = 0
-                reward_o = 0
 
-            state_x_t_1 = copy.deepcopy(current_state)
-            action_x_t_1 = player_x.get_behavior_action(state_x_t_1, self.state_table, epsilon)
+            state_x_t_1 = self.current_state
+            action_x_t_1 = player_x.get_behavior_action(self.current_state, self.state_table, epsilon)
 
             # backup Q value for player x
             self.backup_q_value(state_x_t, action_x_t, state_x_t_1, reward_x)
@@ -113,42 +132,50 @@ class Trainer:
             # discard the history / move to next time step for X
             state_x_t = state_x_t_1
             action_x_t = action_x_t_1
-            current_state = current_state.add_move(action_x_t, player_x.symbol)
-            self.add_state_to_state_table(current_state)
+
+            self.current_state = state_x_t.add_move(action_x_t, player_x.symbol)
+            # self.add_state_to_state_table(state_o_t_1)
             # print(current_state)
 
             # check if X ended the game
-            if current_state.has_tie():
-                reward_x, reward_o = 0, 0
+            if self.current_state.has_tie():
+                reward_x, reward_o = 0.0, 0.0
                 break
-            elif current_state.is_winner(player_x.symbol):
-                reward_x = 1
-                reward_o = -1
+            elif self.current_state.is_winner(player_x.symbol):
+                reward_x = 1.0
+                reward_o = -1.0
                 break
-            else:
-                reward_x = 0
-                reward_o = 0
 
-            state_o_t_1 = copy.deepcopy(current_state)
-            action_o_t_1 = player_o.get_behavior_action(state_o_t_1, self.state_table, epsilon)
+            state_o_t_1 = self.current_state
+            action_o_t_1 = player_o.get_behavior_action(self.current_state, self.state_table, epsilon)
             self.backup_q_value(state_o_t, action_o_t, state_o_t_1, reward_o)
 
+            # discard history, move to next time step for o
             state_o_t = state_o_t_1
             action_o_t = action_o_t_1
 
-        self.backup_q_value(state_x_t, action_x_t, state_x_t_1, reward_x)
-        self.backup_q_value(state_o_t, action_o_t, state_o_t_1, reward_o)
+            # end of while loop
+
+        self.backup_q_value(state_x_t, action_x_t, None, reward_x)
+        self.backup_q_value(state_o_t, action_o_t, None, reward_o)
 
         # return the winner
-        if current_state.is_winner(player_x.symbol):
 
-            return player_x.symbol
-        elif current_state.is_winner(player_o.symbol):
-
-            return player_o.symbol
+        if reward_x == 1:
+            return 'X'
+        elif reward_o == 1:
+            return 'O'
         else:
-
             return '-'
+        # if current_state.is_winner(player_x.symbol):
+        #
+        #     return player_x.symbol
+        # elif current_state.is_winner(player_o.symbol):
+        #
+        #     return player_o.symbol
+        # else:
+        #
+        #     return '-'
 
     def add_state_to_state_table(self, state: Board):
 
@@ -166,7 +193,7 @@ class Trainer:
             # print("Adding state to table.\n")
             self.state_table[state] = action_values
 
-    def backup_q_value(self, state_s: Board, action_a: int, state_s_plus_1: Board, reward=0):
+    def backup_q_value(self, state_s: Board, action_a: int, state_s_plus_1=None, reward=0.0):
         """
         Q(s,a) = Q(s,a) + alpha * ( Reward + Y*argmax(s_t_plus_1) - Q(s,a))
         :param state_s: s
@@ -175,9 +202,9 @@ class Trainer:
         :param reward: 0 by default.
         :return: None. updates the self.state_table
         """
-        q_s_a = self.state_table.get(state_s)
-        q_s_a[action_a] = q_s_a[action_a] + \
-                          self.alpha * (reward + self.gamma * self.arg_max(state_s_plus_1) - q_s_a[action_a])
+        action_table = self.state_table.get(state_s)
+        action_table[action_a] = action_table[action_a] + self.alpha * (
+                    reward + self.gamma * self.arg_max(state_s_plus_1) - action_table[action_a])
 
     def arg_max(self, state_s: Board):
         """
@@ -186,14 +213,16 @@ class Trainer:
         :return: float representing the highest Q-value in the action table for state_s
         """
         # check if the board is terminal?
-        if len(state_s.possible_actions) == 0:
+        if state_s is None:
+            return 0.0
+        elif len(state_s.possible_actions) == 0:
             return 0.0
         else:
             # get the action table for the given state, check the q values and return the highest one.
             action_table: OrderedDict | list = self.state_table[state_s]
 
             q_values = action_table.values()
-            max_q = max(q_values, default=0)
+            max_q = max(q_values, default=0.0)
 
             # iterates over q_values and filters out any values that don't match max_q
             max_qty = [q for q in q_values if q == max_q]
@@ -224,4 +253,11 @@ class Trainer:
             for key, value in self.state_table.items():
                 writer.writerow([key, [value.keys(), value.values()]])
 
-
+    def clear_q_values(self):
+        """
+        sets the q-values for every state to 0.
+        :return:
+        """
+        for key, value in self.state_table.items():
+            for action in value:
+                value[action] = 0.0

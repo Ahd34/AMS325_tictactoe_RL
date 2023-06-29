@@ -7,10 +7,10 @@ class Board:
         # constructor takes a tuple as the board representation
         # boards will be tuples because in order to be hashable, they need to be immutable
         # self.state = tuple('-' for _ in range(9))
-        if len(given_state) != 9:
-            raise ValueError("State/Board must be of length 9.")
-        if any(char not in ['-', 'O', 'X'] for char in given_state):
-            raise ValueError("Board must only contain '-', 'O', or 'X'")
+        # if len(given_state) != 9:
+        #     raise ValueError("State/Board must be of length 9.")
+        # if any(char not in ['-', 'O', 'X'] for char in given_state):
+        #     raise ValueError("Board must only contain '-', 'O', or 'X'")
 
         # if no errors, set the state and list of possible actions for the Board:
         self.state = given_state
