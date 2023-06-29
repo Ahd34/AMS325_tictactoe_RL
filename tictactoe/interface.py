@@ -1,5 +1,10 @@
+import pickle
+import random
+
 import tkinter as tk
 from tkinter import ttk, messagebox
+
+import board
 
 
 class TicTacToeGUI(tk.Tk):
@@ -8,6 +13,7 @@ class TicTacToeGUI(tk.Tk):
 
         self.title('Tic-Tac-Toe')
 
+        self.actions = pickle.load(open('../state_table_serialized.pkl', 'rb'))
         self.state = [['' for _ in range(3)] for _ in range(3)]
         self.current_player = 'X'
         self.buttons = []
@@ -41,6 +47,13 @@ class TicTacToeGUI(tk.Tk):
         else:
             tk.messagebox.showinfo(title='Invalid Move', message='Please choose another space.')
 
+        if self.current_player == 'O':
+            agent_move = self.get_agent_move()
+
+            self.move(agent_move[0], agent_move[1])
+
+        print(self.get_agent_move())
+
     def check_winner(self):
         win_conditions = [self.state[0],
                           self.state[1],
@@ -70,11 +83,47 @@ class TicTacToeGUI(tk.Tk):
 
     def reset_game(self):
         self.state = [['' for _ in range(3)] for _ in range(3)]
-        self.current_player = 'X'
+        self.current_player = 'O'
 
         for i in self.buttons:
             for j in i:
                 j.configure(text='')
+
+    def state_to_key(self):
+        key = []
+
+        for i in self.state:
+            for j in i:
+                if j == '':
+                    key.append('-')
+                else:
+                    key.append(j)
+
+        return tuple(key)
+
+    def get_agent_move(self):
+        translation = {0: (0, 0), 1: (0, 1), 2: (0, 2),
+                       3: (1, 0), 4: (1, 1), 5: (1, 2),
+                       6: (2, 0), 7: (2, 1), 8: (2, 2)}
+        key = board.Board(self.state_to_key())
+
+        try:
+            vals = dict(self.actions[key])
+            agent_move = max(vals, key=vals.get)
+
+            return translation[agent_move]
+        except KeyError:
+            spaces = []
+
+            for i in range(3):
+                for j in range(3):
+                    if self.state[i][j] == '':
+                        spaces.append((i, j))
+
+            agent_move = random.choice(spaces)
+
+            return agent_move
+
 
 
 game = TicTacToeGUI()
