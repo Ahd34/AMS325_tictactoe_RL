@@ -30,7 +30,7 @@ class Trainer:
         self.win_rate_dataset_tie = []
         self.epsilon_dataset = []
         self.current_episode_num_set = []
-        self.add_state_to_state_table(self.current_state)
+        # self.add_state_to_state_table(self.current_state)
 
 
     def training(self, num_episodes=10):
@@ -93,14 +93,14 @@ class Trainer:
         self.current_state = state_x_t.add_move(action_x_t, player_x.symbol)
         state_o_t = self.current_state
         # print(current_state)
-        self.add_state_to_state_table(self.current_state)
+        # self.add_state_to_state_table(self.current_state)
 
         action_o_t = player_o.get_behavior_action(state_o_t, self.state_table, epsilon)
 
         while True:
             self.current_state = self.current_state.add_move(action_o_t, player_o.symbol)
             # print(current_state)
-            self.add_state_to_state_table(self.current_state)
+            # self.add_state_to_state_table(self.current_state)
             # check if O ended the game
             if self.current_state.is_winner(player_o.symbol):
                 reward_x = -1.0
@@ -121,7 +121,7 @@ class Trainer:
             action_x_t = action_x_t_1
 
             self.current_state = state_x_t.add_move(action_x_t, player_x.symbol)
-            self.add_state_to_state_table(self.current_state)
+            # # self.add_state_to_state_table(self.current_state)
             # print(current_state)
 
             # check if X ended the game
@@ -154,15 +154,7 @@ class Trainer:
             return 'O'
         else:
             return '-'
-        # if current_state.is_winner(player_x.symbol):
-        #
-        #     return player_x.symbol
-        # elif current_state.is_winner(player_o.symbol):
-        #
-        #     return player_o.symbol
-        # else:
-        #
-        #     return '-'
+     
 
     def add_state_to_state_table(self, state: Board):
 

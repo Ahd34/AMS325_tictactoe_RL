@@ -65,6 +65,8 @@ class Agent:
                 best_actions.append(key)
 
         return random.choice(best_actions)
+
+
     @staticmethod
     def get_random_action(state: Board):
-        pass
+        return random.choice(state.possible_actions)

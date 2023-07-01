@@ -1,4 +1,4 @@
-from tictactoe import Board, Trainer, Agent
+from tictactoe import Trainer, TestTraining
 import numpy as np
 import time
 
@@ -9,18 +9,9 @@ def main():
     train = Trainer()
     train.load_serialize_file()
 
-    # mytuple = tuple('-' for _ in range(9))
-    # blankb = Board(mytuple)
-    # board0 = blankb.add_move(0, 'X')
-    # board1 = board0.add_move(1, 'O')
-    # board2 = board1.add_move(4, 'X')
-    # board3 = board2.add_move(6, 'O')
-    # board4 = board3.add_move(8, 'X')
-    # print('board4 winner? ', board4.has_winner())
-    # print('board3 winner? ', board3.has_winner())
-    # print('board2 winner? ', board3.has_winner())
-    # print('board 4 winner is: ', board4.is_winner('0'))
-    train.training(100000)
+    train.clear_q_values()
+
+    train.training(1000000)
     train.save_table_to_file()
     train.save_table_as_csv()
 
@@ -39,6 +30,11 @@ def main():
     np.savetxt('episode_num_set.csv', episode_num_set)
 
     # make a list fo
+    tester = TestTraining(train, 1000)
+    np.savetxt('x_rate_testcase.csv', tester.win_rate_dataset_x)
+    np.savetxt('o_rate_testcase.csv', tester.win_rate_dataset_o)
+    np.savetxt('tie_rate_testcase.csv', tester.win_rate_dataset_tie)
+
 
     print("program complete. Total runtime: %s seconds" % (time.time() - start_time))
 
